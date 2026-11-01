@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Räumplan Winterdienst</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: Betriebs-Leitstand – Kopfleiste mit Lage, darunter Karte links und Tourenzettel rechts; auf dem Handy gestapelt. */
+:root{
+  --bg:#eef2f5;          /* Raureif */
+  --panel:#ffffff;
+  --ink:#16212b;         /* Asphalt */
+  --muted:#5b6a78;
+  --line:#d3dbe2;
+  --soft:#e3e9ee;
+  --accent:#e2640f;      /* Kommunal-Orange */
+  --accent-ink:#ffffff;
+  --ok:#23824f; --ok-bg:#dff3e7;
+  --warn:#a66a00; --warn-bg:#fbefd2;
+  --bad:#c0303f; --bad-bg:#fbe1e4;
+  --t1:#2f6fde; --t2:#e2640f; --t3:#2e9a5c; --t4:#8a56d6; --t5:#1a9aa6; --t6:#d2465e;
+  --font-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --font-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:8px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f161d;--panel:#17212b;--ink:#e6edf3;--muted:#93a3b2;--line:#2a3846;--soft:#1f2b37;
+  --accent:#f07a2a;--accent-ink:#1a0d03;
+  --ok:#5fcf8f;--ok-bg:#16352a;--warn:#f0b955;--warn-bg:#3a2d12;--bad:#ff7b88;--bad-bg:#3d1a20;
+  --t1:#6b9bff;--t2:#f08a40;--t3:#55c487;--t4:#b38cff;--t5:#45c3cd;--t6:#ff7a92;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f161d;--panel:#17212b;--ink:#e6edf3;--muted:#93a3b2;--line:#2a3846;--soft:#1f2b37;
+  --accent:#f07a2a;--accent-ink:#1a0d03;
+  --ok:#5fcf8f;--ok-bg:#16352a;--warn:#f0b955;--warn-bg:#3a2d12;--bad:#ff7b88;--bad-bg:#3d1a20;
+  --t1:#6b9bff;--t2:#f08a40;--t3:#55c487;--t4:#b38cff;--t5:#45c3cd;--t6:#ff7a92;
+  color-scheme:dark}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45}
+.wrap{max-width:1320px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 40px;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance;letter-spacing:.01em}
+h1{font-size:30px;font-weight:700;line-height:1}
+h2{font-size:21px;font-weight:600}
+h3{font-size:18px;font-weight:600}
+.num{font-variant-numeric:tabular-nums}
+.label{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Kopf */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .mark{width:34px;height:34px;border-radius:6px;background:repeating-linear-gradient(-45deg,var(--accent) 0 7px,var(--panel) 7px 14px);border:2px solid var(--accent)}
+.brand small{display:block;color:var(--muted);font-size:13px}
+.top .grow{flex:1}
+.datebox{display:flex;align-items:center;gap:8px}
+.datebox input{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.save{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.save i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.save.ok i{background:var(--ok)} .save.local i{background:var(--warn)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.kpi b{font-family:var(--font-display);font-size:26px;font-weight:600;line-height:1.1}
+.kpi.bad b{color:var(--bad)}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{background:none;border:0;padding:10px 14px;font-family:var(--font-display);font-size:18px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+.banner{background:var(--warn-bg);color:var(--ink);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.banner p{margin:0;flex:1;min-width:220px}
+
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:7px 12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--ink);font-size:14px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--bad)}
+.btn.danger.armed{background:var(--bad);border-color:var(--bad);color:var(--panel)}
+.btn.sm{padding:4px 9px;font-size:13px}
+
+/* Tourenansicht */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 12px;font-size:14px;display:inline-flex;gap:7px;align-items:center;font-weight:500}
+.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.tourgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:900px){.tourgrid{grid-template-columns:1fr}}
+.mapbox{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px;position:sticky;top:10px}
+@media (max-width:900px){.mapbox{position:static}}
+.mapbox svg{width:100%;height:auto;display:block}
+.maplegend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted);padding:6px 4px 0}
+.tours{display:flex;flex-direction:column;gap:14px;min-width:0}
+.tour{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.tour-h{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);border-left:5px solid var(--tc)}
+.tour-h .meta{color:var(--muted);font-size:13.5px;flex-basis:100%}
+.tour-h .grow{flex:1}
+.stops{list-style:none;margin:0;padding:0}
+.stop{display:grid;grid-template-columns:30px 54px minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--soft)}
+.stop:last-child{border-bottom:0}
+.stop .n{width:26px;height:26px;border-radius:50%;background:var(--tc);color:var(--panel);display:grid;place-items:center;font-weight:600;font-size:13px}
+.stop.done .n{background:var(--soft);color:var(--muted)}
+.stop.done .what{text-decoration:line-through;color:var(--muted)}
+.stop .eta{font-family:var(--font-display);font-size:19px;font-weight:600}
+.stop .eta small{display:block;font-family:var(--font-body);font-size:11.5px;color:var(--muted);font-weight:400}
+.stop .what{min-width:0}
+.stop .what b{font-weight:600;display:block;overflow-wrap:anywhere}
+.stop .what span{font-size:13px;color:var(--muted)}
+.stop .tick{display:flex;gap:6px;align-items:center}
+.tick input{width:22px;height:22px;accent-color:var(--ok)}
+.pill{font-size:11.5px;font-weight:600;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.pill.p1{background:var(--bad-bg);color:var(--bad)}
+.pill.p2{background:var(--warn-bg);color:var(--warn)}
+.pill.p3{background:var(--soft);color:var(--muted)}
+.pill.late{background:var(--bad);color:var(--panel)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.leg{font-size:12px;color:var(--muted);padding:2px 14px 2px 54px}
+.tour-f{display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px;background:var(--soft)}
+.empty{padding:28px;text-align:center;color:var(--muted);background:var(--panel);border:1px dashed var(--line);border-radius:var(--r)}
+
+/* Listen und Formulare */
+.split{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:900px){.split{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px;border-bottom:1px solid var(--soft);vertical-align:top}
+tr.sel td{background:var(--soft)}
+td .sub{font-size:12.5px;color:var(--muted)}
+form .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+form .full{grid-column:1/-1}
+@media (max-width:480px){form .grid{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field input,.field select,.field textarea{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%}
+.field .hint{font-size:12px;color:var(--muted)}
+.field .err{font-size:12.5px;color:var(--bad)}
+.checks{display:flex;flex-wrap:wrap;gap:12px}
+.checks label{display:flex;gap:6px;align-items:center}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:6px;font-weight:500;z-index:20}
+@media (prefers-reduced-motion:no-preference){.toast{animation:up .2s ease-out}@keyframes up{from{opacity:0;transform:translate(-50%,8px)}}}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app">
+  <div class="top">
+    <div class="brand"><div class="mark" aria-hidden="true"></div><div><h1>Räumplan</h1><small>Tourenplanung Winterdienst</small></div></div>
+    <div class="grow"></div>
+    <button class="btn" id="syncbtn" data-act="sync-open" hidden>Objekte laden</button>
+    <div class="datebox"><label class="label" for="einsatzdatum">Einsatztag</label><input type="date" id="einsatzdatum"></div>
+    <div class="save" id="savestate"><i></i><span>Lädt …</span></div>
+  </div>
+  <div id="banner"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="touren" aria-selected="true">Touren</button>
+    <button role="tab" data-tab="objekte" aria-selected="false">Objekte</button>
+    <button role="tab" data-tab="teams" aria-selected="false">Touren &amp; Fahrzeuge</button>
+    <button role="tab" data-tab="einst" aria-selected="false">Einstellungen</button>
+  </div>
+  <div id="view"></div>
+</div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+(function(){
+"use strict";
+const TEAMCOL=["--t1","--t2","--t3","--t4","--t5","--t6"];
+const PRIO={1:"Dringlichkeit 1",2:"Dringlichkeit 2",3:"Dringlichkeit 3"};
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+
+/* Beispieldaten nur für die Vorschau ohne Speicher */
+const DEMO={"firmen": [{"id": "f-purus", "name": "Purus", "kontakt": ""}, {"id": "f-fruhnert", "name": "Fruhnert", "kontakt": ""}], "teams": [{"id": "t-fz1", "name": "Fahrzeug 1", "fahrzeug": "", "start": "Münchener Str. 4, Schwabhausen", "lat": 48.302676, "lng": 11.356058, "beginn": "04:30", "farbe": 0}], "objekte": [{"id": "purus-1", "name": "Martin-Kollar-Straße 5, München-Trudering-Riem", "adresse": "Martin-Kollar-Straße 5, 81829 München-Trudering-Riem", "lat": 48.135109, "lng": 11.659959, "prio": 1, "dauer": 20, "flaeche": 0, "bis": "07:00", "raeumen": true, "streuen": true, "team": "t-fz1", "notiz": "", "aktiv": true, "flaeche_txt": "", "firma": "f-purus"}, {"id": "purus-2", "name": "Mühlfeldstraße 1, Fürstenfeldbruck", "adresse": "Mühlfeldstraße 1, 82256 Fürstenfeldbruck", "lat": 48.178306, "lng": 11.246443, "prio": 1, "dauer": 20, "flaeche": 0, "bis": "07:00", "raeumen": true, "streuen": true, "team": "t-fz1", "notiz": "", "aktiv": true, "flaeche_txt": "", "firma": "f-purus"}, {"id": "purus-3", "name": "Ludwig-Thoma-Straße 10, Fürstenfeldbruck-Neu-Lindach", "adresse": "Ludwig-Thoma-Straße 10, 82256 Fürstenfeldbruck-Neu-Lindach", "lat": 48.184251, "lng": 11.251409, "prio": 1, "dauer": 20, "flaeche": 0, "bis": "07:00", "raeumen": true, "streuen": true, "team": "t-fz1", "notiz": "", "aktiv": true, "flaeche_txt": "", "firma": "f-purus"}, {"id": "purus-4", "name": "Kirchstraße 1 a, Adelshofen", "adresse": "Kirchstraße 1 a, 82276 Adelshofen", "lat": 48.182584, "lng": 11.11353, "prio": 1, "dauer": 20, "flaeche": 0, "bis": "07:00", "raeumen": true, "streuen": true, "team": "t-fz1", "notiz": "Koordinaten nur auf Straße genau – bitte prüfen", "aktiv": true, "flaeche_txt": "", "firma": "f-purus"}, {"id": "purus-5", "name": "Rosenstraße 7, Fürstenfeldbruck", "adresse": "Rosenstraße 7, 82256 Fürstenfeldbruck", "lat": 48.174795, "lng": 11.265608, "prio": 1, "dauer": 20, "flaeche": 0, "bis": "07:00", "raeumen": true, "streuen": true, "team": "t-fz1", "notiz": "", "aktiv": true, "flaeche_txt": "", "firma": "f-purus"}, {"id": "purus-6", "name": "Badstraße 3, Grafrath-Wildenroth", "adresse": "Badstraße 3, 82284 Grafrath-Wildenroth", "lat": 48.12242, "lng": 11.167036, "prio": 1, "dauer": 20, "flaeche": 0, "bis": "07:00", "raeumen": true, "streuen": true, "team": "t-fz1", "notiz": "Koordinaten nur auf Straße genau – bitte prüfen", "aktiv": true, "flaeche_txt": "", "firma": "f-purus"}, {"id": "fruhnert-1", "name": "Frühlingstraße 2, Schwabhausen", "adresse": "Frühlingstraße 2, 85247 Schwabhausen", "lat": 48.303159, "lng": 11.354789, "prio": 1, "dauer": 20, "flaeche": 0, "bis": "07:00", "raeumen": true, "streuen": true, "team": "t-fz1", "notiz": "", "aktiv": true, "flaeche_txt": "", "firma": "f-fruhnert"}, {"id": "fruhnert-2", "name": "Frühlingstraße 4, Schwabhausen", "adresse": "Frühlingstraße 4, 85247 Schwabhausen", "lat": 48.303212, "lng": 11.354233, "prio": 1, "dauer": 20, "flaeche": 0, "bis": "07:00", "raeumen": true, "streuen": true, "team": "t-fz1", "notiz": "", "aktiv": true, "flaeche_txt": "", "firma": "f-fruhnert"}, {"id": "fruhnert-3", "name": "Friedberger Str. 14, Schwabhausen-Oberroth", "adresse": "Friedberger Str. 14, 85247 Schwabhausen-Oberroth", "lat": 48.30806, "lng": 11.329122, "prio": 1, "dauer": 20, "flaeche": 0, "bis": "07:00", "raeumen": true, "streuen": true, "team": "t-fz1", "notiz": "", "aktiv": true, "flaeche_txt": "", "firma": "f-fruhnert"}, {"id": "fruhnert-4", "name": "Frauenstraße 38, Maisach", "adresse": "Frauenstraße 38, 82216 Maisach", "lat": 48.212929, "lng": 11.246519, "prio": 1, "dauer": 20, "flaeche": 0, "bis": "07:00", "raeumen": true, "streuen": true, "team": "t-fz1", "notiz": "", "aktiv": true, "flaeche_txt": "", "firma": "f-fruhnert"}, {"id": "fruhnert-5", "name": "Otto-Hahn-Straße 7, Maisach", "adresse": "Otto-Hahn-Straße 7, 82216 Maisach", "lat": 48.213333, "lng": 11.245671, "prio": 1, "dauer": 20, "flaeche": 0, "bis": "07:00", "raeumen": true, "streuen": true, "team": "t-fz1", "notiz": "", "aktiv": true, "flaeche_txt": "", "firma": "f-fruhnert"}, {"id": "fruhnert-6", "name": "Ulmenstraße 32, Schwabhausen", "adresse": "Ulmenstraße 32, 85247 Schwabhausen", "lat": 48.303694, "lng": 11.35967, "prio": 1, "dauer": 20, "flaeche": 0, "bis": "07:00", "raeumen": true, "streuen": true, "team": "t-fz1", "notiz": "", "aktiv": true, "flaeche_txt": "", "firma": "f-fruhnert"}]};
+const DEFAULT_SET={kmh:35,faktor:1.35,gm2:15,rueckfahrt:true};
+
+const S={firmen:[],firmaFilter:"alle",sel:new Set(),editFirma:null,bulkTeam:"",objekte:[],teams:[],erledigt:[],set:{...DEFAULT_SET},date:today(),tab:"touren",teamFilter:"alle",
+  editObj:null,editTeam:null,mode:"loading",db:null,armed:null,loaded:{o:false,t:false}};
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const toMin=t=>{const m=/^(\d{1,2}):(\d{2})$/.exec(t||"");return m?(+m[1])*60+(+m[2]):null};
+const hhmm=m=>{m=Math.round(m);const h=Math.floor(m/60)%24,mm=m%60;return String(h).padStart(2,"0")+":"+String(mm).padStart(2,"0")};
+const dur=m=>{m=Math.round(m);return m>=60?Math.floor(m/60)+" h "+String(m%60).padStart(2,"0")+" min":m+" min"};
+const tcol=t=>`var(${TEAMCOL[(t?.farbe??0)%TEAMCOL.length]})`;
+function toast(msg){const t=$("#toast");t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2400)}
+
+/* ---------- Geometrie & Optimierung ---------- */
+function hav(a,b){const R=6371,r=Math.PI/180;const dLa=(b.lat-a.lat)*r,dLo=(b.lng-a.lng)*r;
+  const x=Math.sin(dLa/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
+const km=(a,b)=>hav(a,b)*S.set.faktor;
+const fahr=(a,b)=>km(a,b)/Math.max(1,S.set.kmh)*60;
+
+function orderGroup(start,pts){
+  // Nächster Nachbar, danach 2-opt für einen offenen Pfad ab "start"
+  const rest=pts.slice(),path=[];let cur=start;
+  while(rest.length){let bi=0,bd=Infinity;rest.forEach((p,i)=>{const d=hav(cur,p);if(d<bd){bd=d;bi=i}});cur=rest.splice(bi,1)[0];path.push(cur)}
+  const seq=[start,...path];const len=s=>{let L=0;for(let i=1;i<s.length;i++)L+=hav(s[i-1],s[i]);return L};
+  let improved=true,guard=0;
+  while(improved&&guard++<60){improved=false;
+    for(let i=1;i<seq.length-1;i++)for(let k=i+1;k<seq.length;k++){
+      const a=seq[i-1],b=seq[i],c=seq[k],d=seq[k+1];
+      const before=hav(a,b)+(d?hav(c,d):0),after=hav(a,c)+(d?hav(b,d):0);
+      if(after+1e-9<before){seq.splice(i,k-i+1,...seq.slice(i,k+1).reverse());improved=true}}}
+  return seq.slice(1);
+}
+function planTeam(team){
+  const objs=S.objekte.filter(o=>o.team===team.id&&o.aktiv!==false&&valid(o));
+  const depot={lat:team.lat,lng:team.lng};
+  let pos=depot,seq=[];
+  [1,2,3].forEach(p=>{const g=objs.filter(o=>+o.prio===p);if(!g.length)return;const ord=orderGroup(pos,g);seq.push(...ord);pos=ord[ord.length-1]});
+  let t=toMin(team.beginn)??270,prev=depot,kmSum=0,fahrSum=0,arbeit=0,salz=0;
+  const stops=seq.map(o=>{const k=km(prev,o),f=fahr(prev,o);kmSum+=k;fahrSum+=f;t+=f;const an=t;t+=+o.dauer||0;arbeit+=+o.dauer||0;
+    if(o.streuen)salz+=(+o.flaeche||0)*S.set.gm2/1000;
+    const bis=toMin(o.bis);prev=o;return{o,an,fertig:t,km:k,fahr:f,late:bis!=null&&t>bis,spaet:bis!=null?t-bis:0}});
+  let rueck=0;if(S.set.rueckfahrt&&seq.length){rueck=fahr(prev,depot);kmSum+=km(prev,depot);fahrSum+=rueck;t+=rueck}
+  return{team,stops,ende:t,km:kmSum,fahrzeit:fahrSum,arbeit,salz,late:stops.filter(s=>s.late).length};
+}
+const valid=o=>isFinite(+o.lat)&&isFinite(+o.lng)&&Math.abs(+o.lat)<=90&&Math.abs(+o.lng)<=180&&o.lat!==""&&o.lng!=="";
+
+function verteilen(){
+  const offen=S.objekte.filter(o=>!o.team&&o.aktiv!==false&&valid(o));
+  if(!S.teams.length){toast("Lege zuerst eine Tour an.");return}
+  if(!offen.length){toast("Alle Objekte sind schon einer Tour zugeteilt.");return}
+  const load={};S.teams.forEach(t=>load[t.id]=S.objekte.filter(o=>o.team===t.id).reduce((s,o)=>s+(+o.dauer||0),0));
+  const centroid=t=>{const m=S.objekte.filter(o=>o.team===t.id&&valid(o));if(!m.length)return t;return{lat:m.reduce((s,o)=>s+ +o.lat,0)/m.length,lng:m.reduce((s,o)=>s+ +o.lng,0)/m.length}};
+  offen.sort((a,b)=>a.prio-b.prio).forEach(o=>{let best=null,bs=Infinity;
+    S.teams.forEach(t=>{const c=centroid(t);const s=hav(c,o)*6+load[t.id]/10;if(s<bs){bs=s;best=t}});
+    o.team=best.id;load[best.id]+=+o.dauer||0;saveObj(o)});
+  toast(offen.length+" Objekt(e) verteilt");render();
+}
+
+/* ---------- Speicher ---------- */
+function setSave(kind,txt){const el=$("#savestate");el.className="save "+kind;el.querySelector("span").textContent=txt}
+async function saveObj(o){if(!S.db)return;try{const {id,...rest}=o;await S.db.collection("objekte").doc(id).set(rest);setSave("ok","Gespeichert")}catch(e){setSave("local","Nicht gespeichert: "+(e.message||e.code))}}
+async function delObj(id){S.objekte=S.objekte.filter(o=>o.id!==id);render();if(S.db)try{await S.db.collection("objekte").doc(id).delete()}catch(e){toast("Löschen fehlgeschlagen")}}
+async function saveFirma(f){if(!S.db)return;try{const {id,...rest}=f;await S.db.collection("firmen").doc(id).set(rest);setSave("ok","Gespeichert")}catch(e){setSave("local","Nicht gespeichert: "+(e.message||e.code))}}
+async function delFirma(id){S.firmen=S.firmen.filter(f=>f.id!==id);S.objekte.forEach(o=>{if(o.firma===id){o.firma="";saveObj(o)}});if(S.firmaFilter===id)S.firmaFilter="alle";render();if(S.db)try{await S.db.collection("firmen").doc(id).delete()}catch(e){toast("Löschen fehlgeschlagen")}}
+const firmaName=id=>(S.firmen.find(f=>f.id===id)||{}).name||"";
+async function saveTeam(t){if(!S.db)return;try{const {id,...rest}=t;await S.db.collection("teams").doc(id).set(rest);setSave("ok","Gespeichert")}catch(e){setSave("local","Nicht gespeichert: "+(e.message||e.code))}}
+async function delTeam(id){S.teams=S.teams.filter(t=>t.id!==id);S.objekte.forEach(o=>{if(o.team===id){o.team="";saveObj(o)}});render();if(S.db)try{await S.db.collection("teams").doc(id).delete()}catch(e){toast("Löschen fehlgeschlagen")}}
+async function saveSet(){if(!S.db)return;try{await S.db.doc("einstellungen/allgemein").set(S.set);setSave("ok","Gespeichert")}catch(e){setSave("local","Nicht gespeichert")}}
+async function setDone(o,team,on){
+  const id=S.date+"_"+o.id;
+  if(on){const rec={id,datum:S.date,objekt:o.id,team:team.id,zeit:hhmm(new Date().getHours()*60+new Date().getMinutes())};S.erledigt=S.erledigt.filter(e=>e.id!==id).concat(rec);render();
+    if(S.db)try{const {id:_,...r}=rec;await S.db.collection("erledigt").doc(id).set(r)}catch(e){toast("Abhaken nicht gespeichert")}}
+  else{S.erledigt=S.erledigt.filter(e=>e.id!==id);render();if(S.db)try{await S.db.collection("erledigt").doc(id).delete()}catch(e){toast("Nicht gespeichert")}}
+}
+const doneRec=o=>S.erledigt.find(e=>e.datum===S.date&&e.objekt===o.id);
+const newId=p=>p+"-"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+/* ---------- Karte ---------- */
+function mapSVG(plans){
+  const pts=[];plans.forEach(p=>{pts.push({lat:p.team.lat,lng:p.team.lng});p.stops.forEach(s=>pts.push(s.o))});
+  S.objekte.filter(o=>!o.team&&valid(o)).forEach(o=>pts.push(o));
+  const W=800,H=560,pad=40;
+  if(!pts.length)return`<svg viewBox="0 0 ${W} 200" role="img" aria-label="Keine Punkte"><text x="${W/2}" y="100" text-anchor="middle" fill="var(--muted)" font-size="16">Noch keine Objekte mit Koordinaten</text></svg>`;
+  let la0=Math.min(...pts.map(p=>+p.lat)),la1=Math.max(...pts.map(p=>+p.lat)),lo0=Math.min(...pts.map(p=>+p.lng)),lo1=Math.max(...pts.map(p=>+p.lng));
+  const cos=Math.cos((la0+la1)/2*Math.PI/180);
+  let spanX=Math.max((lo1-lo0)*cos,0.005),spanY=Math.max(la1-la0,0.005);
+  const sc=Math.min((W-2*pad)/spanX,(H-2*pad)/spanY);
+  const ox=(W-spanX*sc)/2,oy=(H-spanY*sc)/2;
+  const X=p=>ox+((+p.lng-lo0)*cos)*sc, Y=p=>H-(oy+(+p.lat-la0)*sc);
+  // Maßstab: km pro Pixel
+  const kmPx=111.32/sc;const steps=[0.5,1,2,5,10,20];const kmBar=steps.find(s=>s/kmPx>90)||20;const barPx=kmBar/kmPx;
+  let g=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tourenkarte (schematisch)">`;
+  g+=`<rect x="0" y="0" width="${W}" height="${H}" rx="6" fill="var(--bg)"/>`;
+  for(let x=0;x<=W;x+=barPx/2)g+=`<line x1="${x.toFixed(1)}" y1="0" x2="${x.toFixed(1)}" y2="${H}" stroke="var(--line)" stroke-width="0.6"/>`;
+  for(let y=H;y>=0;y-=barPx/2)g+=`<line x1="0" y1="${y.toFixed(1)}" x2="${W}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-width="0.6"/>`;
+  plans.forEach(p=>{if(!p.stops.length)return;const c=tcol(p.team);const seq=[p.team,...p.stops.map(s=>s.o)];if(S.set.rueckfahrt)seq.push(p.team);
+    g+=`<polyline points="${seq.map(q=>X(q).toFixed(1)+","+Y(q).toFixed(1)).join(" ")}" fill="none" stroke="${c}" stroke-width="2.6" stroke-linejoin="round" stroke-opacity=".85"${S.set.rueckfahrt?"":""}/>`;
+    if(S.set.rueckfahrt){const a=p.stops[p.stops.length-1].o;g+=`<line x1="${X(a)}" y1="${Y(a)}" x2="${X(p.team)}" y2="${Y(p.team)}" stroke="var(--bg)" stroke-width="2.6" stroke-dasharray="2 6"/>`}});
+  const depots={};plans.forEach(p=>{const k=(+p.team.lat).toFixed(4)+","+(+p.team.lng).toFixed(4);(depots[k]=depots[k]||{p:p.team,names:[]}).names.push(p.team.name)});
+  Object.values(depots).forEach(d=>{const x=X(d.p),y=Y(d.p);g+=`<rect x="${x-9}" y="${y-9}" width="18" height="18" rx="3" fill="var(--ink)"/><path d="M${x-5} ${y+4}L${x} ${y-5}L${x+5} ${y+4}Z" fill="var(--panel)"/><text x="${x+13}" y="${y+4}" font-size="12.5" fill="var(--ink)" font-weight="600">${esc(d.p.start||"Start")}</text>`});
+  plans.forEach(p=>p.stops.forEach((s,i)=>{const x=X(s.o),y=Y(s.o),c=tcol(p.team),dn=doneRec(s.o);
+    g+=`<g><title>${esc((firmaName(s.o.firma)?firmaName(s.o.firma)+": ":"")+s.o.name)} · an ${hhmm(s.an)}</title>`;
+    if(s.late)g+=`<circle cx="${x}" cy="${y}" r="15" fill="none" stroke="var(--bad)" stroke-width="2" stroke-dasharray="3 2"/>`;
+    g+=`<circle cx="${x}" cy="${y}" r="11" fill="${dn?"var(--panel)":c}" stroke="${c}" stroke-width="2"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${dn?c:"var(--panel)"}">${i+1}</text></g>`}));
+  S.objekte.filter(o=>!o.team&&valid(o)).forEach(o=>{const x=X(o),y=Y(o);g+=`<g><title>${esc(o.name)} · nicht zugeteilt</title><circle cx="${x}" cy="${y}" r="9" fill="var(--panel)" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3 2"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--muted)">?</text></g>`});
+  g+=`<g transform="translate(${W-barPx-24},${H-22})"><rect x="-6" y="-16" width="${barPx+12}" height="28" rx="4" fill="var(--panel)" fill-opacity=".9"/><line x1="0" y1="0" x2="${barPx}" y2="0" stroke="var(--ink)" stroke-width="3"/><line x1="0" y1="-5" x2="0" y2="5" stroke="var(--ink)" stroke-width="2"/><line x1="${barPx}" y1="-5" x2="${barPx}" y2="5" stroke="var(--ink)" stroke-width="2"/><text x="${barPx/2}" y="-5" text-anchor="middle" font-size="11.5" fill="var(--ink)">${kmBar} km Luftlinie</text></g>`;
+  g+=`<text x="${W-14}" y="22" text-anchor="end" font-size="13" font-weight="700" fill="var(--muted)">N ↑</text></svg>`;
+  return g;
+}
+
+/* ---------- Navigation ---------- */
+function navLinks(p){
+  const pts=p.stops.map(s=>s.o).filter(o=>!doneRec(o));if(!pts.length)return[];
+  const ll=q=>(+q.lat).toFixed(6)+","+(+q.lng).toFixed(6);const out=[];let from=p.team;
+  for(let i=0;i<pts.length;i+=9){const ch=pts.slice(i,i+9);const dest=ch[ch.length-1],way=ch.slice(0,-1);
+    let u="https://www.google.com/maps/dir/?api=1&travelmode=driving"+(out.length?"&origin="+ll(from):"")+"&destination="+ll(dest);if(way.length)u+="&waypoints="+encodeURIComponent(way.map(ll).join("|"));
+    out.push({u,label:pts.length>9?`Navi Abschnitt ${out.length+1} (Stopp ${i+1}–${i+ch.length})`:"In Google Maps navigieren"});from=dest}
+  return out;
+}
+
+/* ---------- Ansichten ---------- */
+function soft(){const a=document.activeElement;if(a&&a.closest&&a.closest("form")&&a.tagName!=="BUTTON"){return}render()}
+const KEY="raeumplan-daten-v1",PWKEY="raeumplan-pw";
+const pwGet=()=>{try{return localStorage.getItem(PWKEY)||""}catch(_){return""}};
+const pwSet=v=>{try{v?localStorage.setItem(PWKEY,v):localStorage.removeItem(PWKEY)}catch(_){}};
+function b64e(u8){let x="";for(let i=0;i<u8.length;i+=0x8000)x+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(x)}
+const b64d=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
+async function deriveKey(pw,salt,iter){const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:iter,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+async function encryptData(pw,obj){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),iter=600000;const key=await deriveKey(pw,salt,iter);const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,new TextEncoder().encode(JSON.stringify(obj)));return{app:"raeumplan",v:1,stand:obj.stand,iter,salt:b64e(salt),iv:b64e(iv),data:b64e(new Uint8Array(ct))}}
+async function decryptData(pw,f){const key=await deriveKey(pw,b64d(f.salt),f.iter);const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64d(f.iv)},key,b64d(f.data));return JSON.parse(new TextDecoder().decode(pt))}
+const fmtStand=iso=>{try{return new Date(iso).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})+" Uhr"}catch(_){return iso}};
+const isFile=location.protocol==="file:";
+async function syncLoad(pw,remember,silent){
+  S.syncBusy=true;S.syncErr="";if(!silent)render();
+  try{
+    let r;try{r=await fetch("daten.enc.json?t="+Date.now(),{cache:"no-store"})}catch(_){throw{msg:isFile?"Das geht nur auf der GitHub-Seite, nicht in der heruntergeladenen Datei.":"Keine Verbindung. Bist du online?"}}
+    if(!r.ok)throw{msg:r.status===404?"Auf der Seite liegt noch keine Datei daten.enc.json.":"Die Datei konnte nicht geladen werden (Fehler "+r.status+")."};
+    const f=await r.json();let d;try{d=await decryptData(pw,f)}catch(_){throw{msg:"Das Passwort ist falsch.",pw:true}}
+    S.syncBusy=false;
+    if(silent&&S.syncStand===d.stand)return;
+    S.firmen=d.firmen||[];S.objekte=d.objekte||[];S.teams=d.teams||[];if(d.set)S.set={...DEFAULT_SET,...d.set};S.syncStand=d.stand;
+    if(remember)pwSet(pw);S.syncOpen=false;S.editObj=null;S.editTeam=null;S.editFirma=null;render();toast("Objekte geladen · Stand "+fmtStand(d.stand));
+  }catch(e){S.syncBusy=false;if(e.pw&&silent)pwSet("");if(silent)return;S.syncErr=e.msg||"Laden nicht möglich.";S.syncOpen=true;render()}
+}
+function persist(){if(S.mode!=="local")return;try{localStorage.setItem(KEY,JSON.stringify({syncStand:S.syncStand||"",firmen:S.firmen,objekte:S.objekte,teams:S.teams,erledigt:S.erledigt,set:S.set}))}catch(_){}}
+function render(){
+persist();
+  const plans=S.teams.map(planTeam);
+  const all=S.objekte.filter(o=>o.aktiv!==false);
+  const offen=all.filter(o=>!o.team).length,late=plans.reduce((s,p)=>s+p.late,0);
+  const done=all.filter(o=>doneRec(o)).length;
+  const ende=plans.filter(p=>p.stops.length).reduce((m,p)=>Math.max(m,p.ende),0);
+  $("#kpis").innerHTML=`
+   <div class="kpi"><span class="label">Erledigt heute</span><b class="num">${done} / ${all.length}</b></div>
+   <div class="kpi ${late?"bad":""}"><span class="label">Fristen gefährdet</span><b class="num">${late}</b></div>
+   <div class="kpi"><span class="label">Letzte Tour fertig</span><b class="num">${ende?hhmm(ende):"–"}</b></div>
+   <div class="kpi"><span class="label">Streumittel geschätzt</span><b class="num">${Math.round(plans.reduce((s,p)=>s+p.salz,0))} kg</b></div>
+   <div class="kpi ${offen?"bad":""}"><span class="label">Nicht zugeteilt</span><b class="num">${offen}</b></div>`;
+  const hasDemo=S.objekte.some(o=>o.beispiel)||S.teams.some(t=>t.beispiel);
+  let b="";
+  if(S.store===false)b+=`<div class="banner"><p><b>Speichern nicht möglich.</b> Dieser Browser blockiert lokalen Speicher (z. B. privates Fenster). Änderungen gehen beim Schließen verloren.</p></div>`;
+  if(hasDemo)b+=`<div class="banner"><p><b>Beispieldaten:</b> Die Objekte und Teams sind erfunden und zeigen nur, wie der Plan arbeitet. Ersetze sie durch deine Kunden.</p><button class="btn ${S.armed==="demo"?"danger armed":"danger"}" data-act="demo-weg">${S.armed==="demo"?"Wirklich alle Beispiele löschen?":"Beispieldaten entfernen"}</button></div>`;
+  if(S.syncOpen)b=`<form class="banner" id="syncform" style="background:var(--soft)" novalidate><p><b>Aktuelle Objekte laden.</b> Gib das Passwort ein, das dir dein Chef gegeben hat.${S.syncStand?` Dein Stand: ${esc(fmtStand(S.syncStand))}.`:""}</p>
+    <input type="password" id="sync-pw" autocomplete="current-password" placeholder="Passwort" style="background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0;flex:1 1 160px">
+    <label class="row" style="gap:6px"><input type="checkbox" id="sync-merk" checked> auf diesem Handy merken</label>
+    <button class="btn primary" type="submit" ${S.syncBusy?"disabled":""}>${S.syncBusy?"Lädt …":"Laden"}</button><button class="btn" type="button" data-act="sync-close">Abbrechen</button>
+    ${S.syncErr?`<p style="color:var(--bad);flex-basis:100%;margin:0"><b>${esc(S.syncErr)}</b></p>`:""}<p style="flex-basis:100%;margin:0;font-size:13px;color:var(--muted)">Deine Häkchen von heute bleiben erhalten. Objekte, Firmen und Touren werden durch den neuen Stand ersetzt.</p></form>`+b;
+  const sb=$("#syncbtn");if(sb){sb.hidden=isFile;sb.textContent=pwGet()?"Objekte aktualisieren":"Objekte laden"}
+  $("#banner").innerHTML=b;
+  document.querySelectorAll("#tabs button").forEach(x=>x.setAttribute("aria-selected",x.dataset.tab===S.tab));
+  $("#einsatzdatum").value=S.date;
+  const v=$("#view");
+  if(S.mode==="loading"){v.innerHTML=`<div class="empty">Daten werden geladen …</div>`;return}
+  v.innerHTML=S.tab==="touren"?viewTouren(plans):S.tab==="objekte"?viewObjekte():S.tab==="teams"?viewTeams(plans):viewEinst();
+}
+
+function viewTouren(plans){
+  if(!S.teams.length&&!S.objekte.length)return`<div class="empty"><h3>Noch nichts geplant</h3><p>Lege unter <b>Touren &amp; Fahrzeuge</b> deine Touren mit Startort an, dann unter <b>Objekte</b> deine Firmen und ihre Objekte.</p><button class="btn primary" data-tab-go="teams">Erste Tour anlegen</button></div>`;
+  const shown=S.teamFilter==="alle"?plans:plans.filter(p=>p.team.id===S.teamFilter);
+  const offen=S.objekte.filter(o=>!o.team&&o.aktiv!==false).length;
+  let h=`<div class="row" style="justify-content:space-between"><div class="chips">
+    <button class="chip" data-filter="alle" aria-pressed="${S.teamFilter==="alle"}">Alle Touren</button>
+    ${plans.map(p=>`<button class="chip" data-filter="${p.team.id}" aria-pressed="${S.teamFilter===p.team.id}"><span class="dot" style="background:${tcol(p.team)}"></span>${esc(p.team.name)} <span class="num" style="color:var(--muted)">${p.stops.length}</span></button>`).join("")}
+  </div>${offen?`<button class="btn primary" data-act="verteilen">${offen} offene Objekt(e) automatisch auf Touren verteilen</button>`:""}</div>
+  <div class="tourgrid"><div class="mapbox">${mapSVG(shown)}<div class="maplegend"><span>■ Start / Betriebshof</span><span>● Stopp in Reihenfolge</span><span>◌ rot gestrichelt: Frist gefährdet</span><span>? nicht zugeteilt</span><span>Schematische Lage, keine Straßenkarte</span></div></div><div class="tours">`;
+  shown.forEach(p=>{const c=tcol(p.team);
+    h+=`<section class="tour" style="--tc:${c}"><div class="tour-h"><h2>${esc(p.team.name)}</h2><div class="grow"></div>
+      ${p.late?`<span class="pill late">${p.late} Frist(en) gefährdet</span>`:p.stops.length?`<span class="pill ok">alle Fristen gehalten</span>`:""}
+      <div class="meta num">${esc(p.team.fahrzeug||"")}${p.team.fahrzeug?" · ":""}Start ${esc(p.team.beginn||"–")} · ${p.stops.length} Stopps · ${p.km.toFixed(1)} km · Fahrt ${dur(p.fahrzeit)} · Arbeit ${dur(p.arbeit)} · fertig ca. ${p.stops.length?hhmm(p.ende):"–"}${p.salz?` · ca. ${Math.round(p.salz)} kg Streumittel`:""}</div></div>`;
+    if(!p.stops.length)h+=`<div class="empty" style="border:0">Keine Objekte zugeteilt.</div>`;
+    else{h+=`<ol class="stops">`;p.stops.forEach((s,i)=>{const dn=doneRec(s.o);
+      h+=`<li class="leg num">↓ ${s.km.toFixed(1)} km · ${Math.round(s.fahr)} min Fahrt</li>
+      <li class="stop ${dn?"done":""}"><span class="n num">${i+1}</span><span class="eta num">${hhmm(s.an)}<small>bis ${hhmm(s.fertig)}</small></span>
+      <span class="what"><b>${firmaName(s.o.firma)?`<span style="color:var(--muted);font-weight:500">${esc(firmaName(s.o.firma))} · </span>`:""}${esc(s.o.name)}</b><span>${esc(s.o.flaeche_txt||"")}${s.o.flaeche_txt?" · ":""}${[s.o.raeumen?"Räumen":"",s.o.streuen?"Streuen":""].filter(Boolean).join(" + ")} · ${s.o.dauer} min${s.o.bis?` · Frist ${esc(s.o.bis)}`:""}${s.o.notiz?` · ${esc(s.o.notiz)}`:""}</span>
+      <span class="row" style="margin-top:3px"><span class="pill p${s.o.prio}">${PRIO[s.o.prio]}</span>${s.late&&!dn?`<span class="pill late">${Math.round(s.spaet)} min über Frist</span>`:""}${dn?`<span class="pill ok">erledigt ${esc(dn.zeit)}</span>`:""}</span></span>
+      <label class="tick"><input type="checkbox" id="chk-${s.o.id}" data-done="${s.o.id}" data-team="${p.team.id}" ${dn?"checked":""} aria-label="${esc(s.o.name)} erledigt"></label></li>`});
+      h+=`</ol>`}
+    const nl=navLinks(p);
+    h+=`<div class="tour-f">${nl.map(n=>`<a class="btn" href="${n.u}" target="_blank" rel="noopener">${esc(n.label)} ↗</a>`).join("")}<button class="btn" data-act="copy" data-team="${p.team.id}">Tourenzettel kopieren</button></div></section>`});
+  return h+`</div></div>`;
+}
+
+function objForm(){
+  const o=S.editObj;if(!o)return`<div class="card"><h3>Objekt bearbeiten</h3><p style="margin:0;color:var(--muted)">Wähle links ein Objekt aus oder lege ein neues an.</p><div><button class="btn primary" data-act="obj-neu">Neues Objekt</button></div></div>`;
+  return`<form class="card" id="objform" novalidate><h3>${o._neu?"Neues Objekt":"Objekt bearbeiten"}</h3><div class="grid">
+   <div class="field full"><label class="label" for="f-firma">Firma</label><select id="f-firma" name="firma"><option value="">– ohne Firma –</option>${S.firmen.map(f=>`<option value="${f.id}" ${o.firma===f.id?"selected":""}>${esc(f.name)}</option>`).join("")}</select></div>
+   <div class="field full"><label class="label" for="f-name">Bezeichnung</label><input id="f-name" name="name" required value="${esc(o.name)}" placeholder="z. B. Mühlfeldstraße 1, Fürstenfeldbruck"></div>
+   <div class="field full"><label class="label" for="f-adr">Adresse</label><input id="f-adr" name="adresse" value="${esc(o.adresse)}" placeholder="Straße Nr., PLZ Ort"></div>
+   <div class="field full"><label class="label" for="f-koord">Koordinaten</label><input id="f-koord" name="koord" value="${valid(o)&&o.lat!==""?(+o.lat).toFixed(6)+", "+(+o.lng).toFixed(6):""}" placeholder="49.452100, 11.076700">
+     <span class="hint">In Google Maps Rechtsklick auf den Ort → Koordinaten anklicken (werden kopiert) → hier einfügen. Ein Google-Maps-Link mit @Breite,Länge geht auch.</span><span class="err" id="koord-err"></span></div>
+   <div class="field full"><label class="label" for="f-ft">Was wird gemacht</label><input id="f-ft" name="flaeche_txt" value="${esc(o.flaeche_txt)}" placeholder="z. B. Gehweg + Zugang, Parkplatz"></div>
+   <div class="field"><label class="label" for="f-prio">Dringlichkeit</label><select id="f-prio" name="prio">${[1,2,3].map(p=>`<option value="${p}" ${+o.prio===p?"selected":""}>${p} – ${p===1?"zuerst (Räumpflicht)":p===2?"danach":"zuletzt"}</option>`).join("")}</select></div>
+   <div class="field"><label class="label" for="f-bis">Fertig bis</label><input id="f-bis" name="bis" type="time" value="${esc(o.bis)}"><span class="hint">Leer lassen, wenn keine Frist</span></div>
+   <div class="field"><label class="label" for="f-dauer">Arbeitszeit vor Ort (min)</label><input id="f-dauer" name="dauer" type="number" min="1" step="1" value="${esc(o.dauer)}"></div>
+   <div class="field"><label class="label" for="f-fl">Streufläche (m²)</label><input id="f-fl" name="flaeche" type="number" min="0" step="10" value="${esc(o.flaeche)}"></div>
+   <div class="field full"><span class="label">Leistung</span><div class="checks"><label><input type="checkbox" id="f-r" name="raeumen" ${o.raeumen?"checked":""}> Räumen</label><label><input type="checkbox" id="f-s" name="streuen" ${o.streuen?"checked":""}> Streuen</label><label><input type="checkbox" id="f-a" name="aktiv" ${o.aktiv!==false?"checked":""}> Aktiv diese Saison</label></div></div>
+   <div class="field full"><label class="label" for="f-team">Tour</label><select id="f-team" name="team"><option value="">– noch keiner Tour zugeteilt –</option>${S.teams.map(t=>`<option value="${t.id}" ${o.team===t.id?"selected":""}>${esc(t.name)}</option>`).join("")}</select></div>
+   <div class="field full"><label class="label" for="f-notiz">Hinweis für die Kolonne</label><textarea id="f-notiz" name="notiz" rows="2" placeholder="z. B. Schlüssel im Kasten, kein Salz auf Natursteintreppe">${esc(o.notiz)}</textarea></div>
+  </div><div class="row"><button class="btn primary" type="submit">Speichern</button><button class="btn" type="button" data-act="obj-abbr">Abbrechen</button><span style="flex:1"></span>${o._neu?"":`<button class="btn danger ${S.armed==="o:"+o.id?"armed":""}" type="button" data-act="obj-del">${S.armed==="o:"+o.id?"Wirklich löschen?":"Löschen"}</button>`}</div></form>`;
+}
+function firmaForm(){
+  const f=S.editFirma;
+  return`<form class="card" id="firmaform" novalidate><h3>${f._neu?"Neue Firma":"Firma bearbeiten"}</h3>
+   <div class="field"><label class="label" for="h-name">Name der Firma</label><input id="h-name" name="name" value="${esc(f.name)}" placeholder="z. B. Purus"></div>
+   <div class="field"><label class="label" for="h-kontakt">Ansprechpartner / Telefon</label><input id="h-kontakt" name="kontakt" value="${esc(f.kontakt||"")}"></div>
+   <div class="row"><button class="btn primary" type="submit">Speichern</button><button class="btn" type="button" data-act="firma-abbr">Abbrechen</button><span style="flex:1"></span>${f._neu?"":`<button class="btn danger ${S.armed==="f:"+f.id?"armed":""}" type="button" data-act="firma-del">${S.armed==="f:"+f.id?"Wirklich löschen? Objekte bleiben ohne Firma":"Firma löschen"}</button>`}</div></form>`;
+}
+function viewObjekte(){
+  const tn=id=>S.teams.find(t=>t.id===id);
+  const cnt=id=>S.objekte.filter(o=>id==="alle"?true:id===""?!o.firma||!S.firmen.some(f=>f.id===o.firma):o.firma===id).length;
+  const ohne=cnt("");
+  const rows=S.objekte.filter(o=>S.firmaFilter==="alle"||(S.firmaFilter===""?(!o.firma||!S.firmen.some(f=>f.id===o.firma)):o.firma===S.firmaFilter))
+    .sort((a,b)=>firmaName(a.firma).localeCompare(firmaName(b.firma),"de")||a.prio-b.prio||a.name.localeCompare(b.name,"de"));
+  [...S.sel].forEach(id=>{if(!S.objekte.some(o=>o.id===id))S.sel.delete(id)});
+  const allSel=rows.length&&rows.every(o=>S.sel.has(o.id));
+  const cur=S.firmen.find(f=>f.id===S.firmaFilter);
+  return`<div class="card"><div class="row" style="justify-content:space-between"><h2>Firmen</h2><button class="btn" data-act="firma-neu">Neue Firma</button></div>
+   <div class="chips"><button class="chip" data-firma="alle" aria-pressed="${S.firmaFilter==="alle"}">Alle Firmen <span class="num" style="color:var(--muted)">${cnt("alle")}</span></button>
+   ${S.firmen.slice().sort((a,b)=>a.name.localeCompare(b.name,"de")).map(f=>`<button class="chip" data-firma="${f.id}" aria-pressed="${S.firmaFilter===f.id}">${esc(f.name)} <span class="num" style="color:var(--muted)">${cnt(f.id)}</span></button>`).join("")}
+   ${ohne?`<button class="chip" data-firma="" aria-pressed="${S.firmaFilter===""}">Ohne Firma <span class="num" style="color:var(--muted)">${ohne}</span></button>`:""}</div>
+   ${cur?`<div class="row"><span style="color:var(--muted)">Ausgewählt: <b style="color:var(--ink)">${esc(cur.name)}</b>${cur.kontakt?" · "+esc(cur.kontakt):""}</span><button class="btn sm" data-act="firma-edit">Firma bearbeiten</button><button class="btn sm primary" data-act="obj-neu">Objekt für ${esc(cur.name)} hinzufügen</button></div>`:""}
+  </div>
+  <div class="split"><div class="card"><div class="row" style="justify-content:space-between"><h2>Objekte${cur?" · "+esc(cur.name):""} <span class="num" style="color:var(--muted)">${rows.length}</span></h2><button class="btn primary" data-act="obj-neu">Neues Objekt</button></div>
+   ${S.sel.size?`<div class="banner" style="background:var(--soft)"><b class="num">${S.sel.size} ausgewählt</b><label class="label" for="bulk-team">Zu Tour</label><select id="bulk-team" class="btn" style="font-weight:500">${S.teams.map(t=>`<option value="${t.id}" ${S.bulkTeam===t.id?"selected":""}>${esc(t.name)}</option>`).join("")}<option value="" ${S.bulkTeam===""&&S.teams.length?"":""}>– aus Tour nehmen –</option></select><button class="btn primary" data-act="bulk-assign">Zuweisen</button><button class="btn" data-act="sel-clear">Auswahl aufheben</button></div>`:`<p class="hint" style="margin:0;color:var(--muted);font-size:13px">Tipp: Hake Objekte aus beliebigen Firmen an und weise sie gemeinsam einer Tour zu. Unter „Alle Firmen“ siehst du alles auf einmal.</p>`}
+   ${rows.length?`<div class="tablewrap"><table><thead><tr><th><input type="checkbox" id="sel-all" aria-label="Alle sichtbaren auswählen" ${allSel?"checked":""}></th><th>Objekt</th><th>Firma</th><th>Dringl.</th><th>Frist</th><th>Min</th><th>Tour</th></tr></thead><tbody>
+   ${rows.map(o=>{const t=tn(o.team);return`<tr class="${S.editObj?.id===o.id||S.sel.has(o.id)?"sel":""}"><td><input type="checkbox" id="sel-${o.id}" data-sel="${o.id}" ${S.sel.has(o.id)?"checked":""} aria-label="${esc(o.name)} auswählen"></td><td><button class="btn sm" style="border:0;padding:0;background:none;text-align:left" data-edit-obj="${o.id}"><b>${esc(o.name)}</b></button><div class="sub">${esc(o.flaeche_txt||"")}${valid(o)?"":' <span style="color:var(--bad)">Koordinaten fehlen</span>'}${o.aktiv===false?" · inaktiv":""}${o.notiz?" · "+esc(o.notiz):""}</div></td>
+   <td>${esc(firmaName(o.firma)||"–")}</td><td><span class="pill p${o.prio}">${o.prio}</span></td><td class="num">${esc(o.bis||"–")}</td><td class="num">${esc(o.dauer)}</td><td>${t?`<span class="row" style="gap:6px;flex-wrap:nowrap"><span class="dot" style="background:${tcol(t)}"></span>${esc(t.name)}</span>`:'<span class="sub">offen</span>'}</td></tr>`}).join("")}</tbody></table></div>`:`<p style="color:var(--muted);margin:0">${cur?`Noch keine Objekte für ${esc(cur.name)}.`:"Noch keine Objekte."} Lege das erste mit „Neues Objekt“ an.</p>`}
+  </div>${S.editFirma?firmaForm():objForm()}</div>`;
+}
+function teamForm(){
+  const t=S.editTeam;if(!t)return`<div class="card"><h3>Tour bearbeiten</h3><p style="margin:0;color:var(--muted)">Eine Tour ist ein Fahrzeug mit Besetzung und Startort. Ihr ordnest jeder Tour Objekte aus beliebigen Firmen zu.</p><div><button class="btn primary" data-act="team-neu">Neue Tour</button></div></div>`;
+  return`<form class="card" id="teamform" novalidate><h3>${t._neu?"Neue Tour":"Tour bearbeiten"}</h3><div class="grid">
+   <div class="field full"><label class="label" for="g-name">Name</label><input id="g-name" name="name" value="${esc(t.name)}" placeholder="z. B. Tour Fürstenfeldbruck"></div>
+   <div class="field full"><label class="label" for="g-fz">Fahrzeug / Besetzung</label><input id="g-fz" name="fahrzeug" value="${esc(t.fahrzeug)}" placeholder="z. B. Kompakttraktor mit Schild, 1 Person"></div>
+   <div class="field"><label class="label" for="g-start">Startort</label><input id="g-start" name="start" value="${esc(t.start)}" placeholder="Betriebshof"></div>
+   <div class="field"><label class="label" for="g-beg">Arbeitsbeginn</label><input id="g-beg" name="beginn" type="time" value="${esc(t.beginn)}"></div>
+   <div class="field full"><label class="label" for="g-koord">Koordinaten Startort</label><input id="g-koord" name="koord" value="${t.lat!==""&&t.lat!=null?(+t.lat).toFixed(6)+", "+(+t.lng).toFixed(6):""}" placeholder="49.438000, 11.048000"><span class="err" id="gkoord-err"></span></div>
+   <div class="field full"><span class="label">Farbe auf der Karte</span><div class="checks">${TEAMCOL.map((c,i)=>`<label><input type="radio" name="farbe" id="g-f${i}" value="${i}" ${+t.farbe===i?"checked":""}><span class="dot" style="background:var(${c});width:16px;height:16px"></span></label>`).join("")}</div></div>
+  </div><div class="row"><button class="btn primary" type="submit">Speichern</button><button class="btn" type="button" data-act="team-abbr">Abbrechen</button><span style="flex:1"></span>${t._neu?"":`<button class="btn danger ${S.armed==="t:"+t.id?"armed":""}" type="button" data-act="team-del">${S.armed==="t:"+t.id?"Wirklich löschen? Objekte werden wieder offen":"Löschen"}</button>`}</div></form>`;
+}
+function viewTeams(plans){
+  return`<div class="split"><div class="card"><div class="row" style="justify-content:space-between"><h2>Touren &amp; Fahrzeuge</h2><button class="btn primary" data-act="team-neu">Neue Tour</button></div>
+  ${plans.length?`<div class="tablewrap"><table><thead><tr><th>Tour</th><th>Beginn</th><th>Stopps</th><th>Arbeit + Fahrt</th><th>Fertig</th></tr></thead><tbody>${plans.map(p=>`<tr class="${S.editTeam?.id===p.team.id?"sel":""}"><td><button class="btn sm" style="border:0;padding:0;background:none;text-align:left" data-edit-team="${p.team.id}"><span class="row" style="gap:6px;flex-wrap:nowrap"><span class="dot" style="background:${tcol(p.team)}"></span><b>${esc(p.team.name)}</b></span></button><div class="sub">${esc(p.team.fahrzeug||"")}</div></td><td class="num">${esc(p.team.beginn||"–")}</td><td class="num">${p.stops.length}</td><td class="num">${dur(p.arbeit+p.fahrzeit)}</td><td class="num">${p.stops.length?hhmm(p.ende):"–"}</td></tr>`).join("")}</tbody></table></div>`:`<p style="color:var(--muted);margin:0">Noch keine Touren.</p>`}
+  </div>${teamForm()}</div>`;
+}
+function viewEinst(){
+  const s=S.set;
+  return`<form class="card" id="setform" style="max-width:640px" novalidate><h2>Berechnung</h2>
+  <p style="margin:0;color:var(--muted)">Ohne Straßendaten schätzt der Plan Wege aus der Luftlinie mal Umwegfaktor. Passe die Werte an, bis die Zeiten zu euren Erfahrungen passen.</p><div class="grid">
+   <div class="field"><label class="label" for="s-kmh">Ø Geschwindigkeit (km/h)</label><input id="s-kmh" name="kmh" type="number" min="5" max="80" value="${s.kmh}"><span class="hint">Mittel über Ort und Landstraße bei Winterverhältnissen; Stadt eher 15–25, Land eher 35–50</span></div>
+   <div class="field"><label class="label" for="s-f">Umwegfaktor</label><input id="s-f" name="faktor" type="number" min="1" max="2.5" step="0.05" value="${s.faktor}"><span class="hint">Straßenweg ÷ Luftlinie, in Städten meist 1,3–1,5</span></div>
+   <div class="field"><label class="label" for="s-g">Streumenge (g/m²)</label><input id="s-g" name="gm2" type="number" min="0" max="500" value="${s.gm2}"><span class="hint">Für die Mengenschätzung je Tour; nimm den Wert eures Streumittels</span></div>
+   <div class="field"><span class="label">Rückfahrt</span><label class="row"><input type="checkbox" id="s-r" name="rueckfahrt" ${s.rueckfahrt?"checked":""}> Rückfahrt zum Start einrechnen</label></div>
+  </div><div><button class="btn primary" type="submit">Übernehmen</button></div>
+  <p class="hint" style="margin:0;font-size:13px;color:var(--muted)">Reihenfolge: Alle Objekte mit Dringlichkeit 1 kommen zuerst, dann 2, dann 3. Innerhalb jeder Stufe sucht der Plan die kürzeste Reihenfolge (nächster Nachbar mit 2-opt-Verbesserung).</p></form>
+  <div class="card" style="max-width:640px;margin-top:14px"><h2>Sicherung</h2><p style="margin:0;color:var(--muted)">Die Daten liegen nur in diesem Browser auf diesem Gerät. Speichere regelmäßig eine Sicherung. Mit der Sicherungsdatei überträgst du den Plan auch auf ein anderes Gerät, zum Beispiel aufs Handy der Fahrer.</p>
+  <div class="row"><button class="btn primary" type="button" data-act="export">Sicherung herunterladen</button><label class="btn" for="importfile">Sicherung laden …</label><input type="file" id="importfile" accept=".json,application/json" hidden></div></div>
+  <form class="card" id="encform" style="max-width:640px;margin-top:14px" novalidate><h2>Objekte für die Handys bereitstellen</h2>
+  <p style="margin:0;color:var(--muted)">Erstellt die Datei <b>daten.enc.json</b> mit allen Firmen, Objekten und Touren, verschlüsselt mit deinem Passwort. Lade sie ins GitHub-Repository „raeumplan“ hoch (alte Datei ersetzen). Danach holen sich die Fahrer mit „Objekte aktualisieren“ den neuen Stand.</p>
+  <div class="grid"><div class="field"><label class="label" for="enc-pw1">Passwort</label><input type="password" id="enc-pw1" autocomplete="new-password"></div>
+  <div class="field"><label class="label" for="enc-pw2">Passwort wiederholen</label><input type="password" id="enc-pw2" autocomplete="new-password"></div></div>
+  <p class="hint" style="margin:0;font-size:13px;color:var(--muted)">Die Datei liegt öffentlich im Netz. Nimm darum mindestens 10 Zeichen, z. B. drei Wörter mit Zahl („Streusalz-Besen-47“). Eine kurze PIN wie 1234 lässt sich knacken.</p>
+  <span class="err" id="enc-err" style="color:var(--bad);font-size:13px"></span>
+  <div class="row"><button class="btn primary" type="submit">daten.enc.json erstellen</button>${pwGet()?`<span style="flex:1"></span><button class="btn" type="button" data-act="pw-forget">Gemerktes Passwort auf diesem Gerät löschen</button>`:""}</div></form>`;
+}
+
+/* ---------- Eingaben ---------- */
+function parseKoord(s){s=(s||"").trim();if(!s)return null;
+  let m=/@(-?\d+\.\d+),(-?\d+\.\d+)/.exec(s)||/(-?\d{1,2}[.,]\d+)\s*[,; ]\s*(-?\d{1,3}[.,]\d+)/.exec(s);
+  if(!m)return false;const lat=parseFloat(m[1].replace(",",".")),lng=parseFloat(m[2].replace(",","."));
+  if(!isFinite(lat)||!isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180)return false;return{lat,lng}}
+
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-tab],[data-tab-go],[data-filter],[data-firma],[data-act],[data-edit-obj],[data-edit-team]");if(!el)return;
+  if(!["obj-del","team-del","demo-weg","firma-del"].includes(el.dataset.act))S.armed=null;
+  if(el.dataset.tab||el.dataset.tabGo){S.tab=el.dataset.tab||el.dataset.tabGo;try{localStorage.setItem("rp-tab",S.tab)}catch(_){}render();return}
+  if(el.dataset.filter){S.teamFilter=el.dataset.filter;render();return}
+  if(el.dataset.firma!==undefined){S.firmaFilter=el.dataset.firma;S.editFirma=null;render();return}
+  if(el.dataset.editObj){const o=S.objekte.find(x=>x.id===el.dataset.editObj);S.editFirma=null;S.editObj={...o};render();$("#objform")?.scrollIntoView({block:"nearest"});return}
+  if(el.dataset.editTeam){const t=S.teams.find(x=>x.id===el.dataset.editTeam);S.editTeam={...t};render();return}
+  const a=el.dataset.act;
+  if(a==="verteilen")verteilen();
+  if(a==="firma-neu"){S.editObj=null;S.editFirma={_neu:true,id:newId("f"),name:"",kontakt:""};render();$("#h-name")?.focus()}
+  if(a==="firma-edit"){S.editObj=null;S.editFirma={...S.firmen.find(f=>f.id===S.firmaFilter)};render()}
+  if(a==="firma-abbr"){S.editFirma=null;render()}
+  if(a==="firma-del"){const id=S.editFirma.id;if(S.armed==="f:"+id){S.armed=null;S.editFirma=null;delFirma(id);toast("Firma gelöscht")}else{S.armed="f:"+id;render()}}
+  if(a==="sel-clear"){S.sel.clear();render()}
+  if(a==="bulk-assign"){const tid=$("#bulk-team").value;let n=0;S.objekte.forEach(o=>{if(S.sel.has(o.id)){o.team=tid;saveObj(o);n++}});S.sel.clear();const t=S.teams.find(x=>x.id===tid);toast(t?n+" Objekt(e) zu „"+t.name+"“ zugewiesen":n+" Objekt(e) aus der Tour genommen");render()}
+  if(a==="obj-neu"){S.editFirma=null;S.editObj={_neu:true,id:newId("o"),firma:S.firmaFilter!=="alle"?S.firmaFilter:"",name:"",adresse:"",lat:"",lng:"",prio:1,dauer:20,flaeche:"",bis:"07:00",raeumen:true,streuen:true,team:"",notiz:"",aktiv:true,flaeche_txt:""};render()}
+  if(a==="obj-abbr"){S.editObj=null;render()}
+  if(a==="obj-del"){const id=S.editObj.id;if(S.armed==="o:"+id){S.armed=null;S.editObj=null;delObj(id);toast("Objekt gelöscht")}else{S.armed="o:"+id;render()}}
+  if(a==="team-neu"){const d=S.teams[0];S.editTeam={_neu:true,id:newId("t"),name:"",fahrzeug:"",start:d?.start||"Betriebshof",lat:d?.lat??"",lng:d?.lng??"",beginn:"04:30",farbe:S.teams.length%TEAMCOL.length};render()}
+  if(a==="team-abbr"){S.editTeam=null;render()}
+  if(a==="team-del"){const id=S.editTeam.id;if(S.armed==="t:"+id){S.armed=null;S.editTeam=null;delTeam(id);toast("Tour gelöscht")}else{S.armed="t:"+id;render()}}
+  if(a==="demo-weg"){if(S.armed==="demo"){S.armed=null;S.objekte.filter(o=>o.beispiel).forEach(o=>delObj(o.id));S.teams.filter(t=>t.beispiel).forEach(t=>delTeam(t.id));toast("Beispieldaten entfernt")}else{S.armed="demo";render()}}
+  if(a==="export"){const blob=new Blob([JSON.stringify({app:"raeumplan",version:1,firmen:S.firmen,objekte:S.objekte,teams:S.teams,erledigt:S.erledigt,set:S.set},null,2)],{type:"application/json"});const u=URL.createObjectURL(blob);const l=document.createElement("a");l.href=u;l.download="raeumplan-sicherung-"+today()+".json";document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);toast("Sicherung heruntergeladen")}
+  if(a==="sync-open"){const pw=pwGet();if(pw){syncLoad(pw,true,false)}else{S.syncOpen=true;S.syncErr="";render();$("#sync-pw")?.focus()}}
+  if(a==="sync-close"){S.syncOpen=false;render()}
+  if(a==="pw-forget"){pwSet("");toast("Passwort auf diesem Gerät gelöscht");render()}
+  if(a==="copy"){const p=planTeam(S.teams.find(t=>t.id===el.dataset.team));
+    const txt=`${p.team.name} – ${new Date(S.date).toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"})}\nStart ${p.team.beginn} ${p.team.start||""}\n`+p.stops.map((s,i)=>`${i+1}. ${hhmm(s.an)}–${hhmm(s.fertig)}  ${firmaName(s.o.firma)?firmaName(s.o.firma)+": ":""}${s.o.name}${s.o.adresse&&s.o.adresse!==s.o.name?" ("+s.o.adresse+")":""}  [${[s.o.raeumen?"Räumen":"",s.o.streuen?"Streuen":""].filter(Boolean).join("+")}${s.o.bis?", Frist "+s.o.bis:""}]${s.o.notiz?"  – "+s.o.notiz:""}`).join("\n")+`\nFertig ca. ${hhmm(p.ende)} · ${p.km.toFixed(1)} km`;
+    const fb=()=>{const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("Tourenzettel kopiert")}catch(_){toast("Kopieren nicht möglich")}ta.remove()};
+    try{navigator.clipboard.writeText(txt).then(()=>toast("Tourenzettel kopiert"),fb)}catch(_){fb()}}
+});
+document.addEventListener("change",e=>{
+  if(e.target.id==="importfile"&&e.target.files[0]){const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x.objekte))throw 0;load(x);S.tab="touren";render();toast("Sicherung geladen: "+S.objekte.length+" Objekte")}catch(_){toast("Diese Datei ist keine Räumplan-Sicherung.")}};r.readAsText(e.target.files[0]);e.target.value="";return}
+  if(e.target.dataset?.sel){e.target.checked?S.sel.add(e.target.dataset.sel):S.sel.delete(e.target.dataset.sel);render();return}
+  if(e.target.id==="sel-all"){document.querySelectorAll("[data-sel]").forEach(c=>e.target.checked?S.sel.add(c.dataset.sel):S.sel.delete(c.dataset.sel));render();return}
+  if(e.target.id==="bulk-team"){S.bulkTeam=e.target.value;return}
+  if(e.target.id==="einsatzdatum"){S.date=e.target.value||today();render()}
+  const id=e.target.dataset?.done;if(id){const o=S.objekte.find(x=>x.id===id),t=S.teams.find(x=>x.id===e.target.dataset.team);setDone(o,t,e.target.checked)}
+});
+document.addEventListener("submit",e=>{e.preventDefault();const f=e.target,fd=new FormData(f);
+  if(f.id==="objform"){const k=parseKoord(fd.get("koord"));const err=$("#koord-err");
+    if(!String(fd.get("name")).trim()){$("#f-name").focus();toast("Gib dem Objekt einen Namen.");return}
+    if(k===false){err.textContent="Das Format passt nicht. Erwartet z. B. 49.452100, 11.076700";return}
+    const o={...S.editObj,name:String(fd.get("name")).trim(),adresse:fd.get("adresse"),flaeche_txt:fd.get("flaeche_txt"),prio:+fd.get("prio"),bis:fd.get("bis"),dauer:Math.max(1,+fd.get("dauer")||1),flaeche:+fd.get("flaeche")||0,raeumen:!!fd.get("raeumen"),streuen:!!fd.get("streuen"),aktiv:!!fd.get("aktiv"),team:fd.get("team"),firma:fd.get("firma"),notiz:fd.get("notiz"),lat:k?k.lat:"",lng:k?k.lng:""};
+    delete o._neu;const i=S.objekte.findIndex(x=>x.id===o.id);if(i>=0)S.objekte[i]=o;else S.objekte.push(o);
+    S.editObj=null;saveObj(o);toast(k?"Objekt gespeichert":"Gespeichert – ohne Koordinaten erscheint es nicht in der Tour");render()}
+  if(f.id==="syncform"){const pw=$("#sync-pw").value;if(!pw){S.syncErr="Gib das Passwort ein.";render();return}syncLoad(pw,$("#sync-merk").checked,false);return}
+  if(f.id==="encform"){const a=$("#enc-pw1").value,b2=$("#enc-pw2").value,err=$("#enc-err");
+    if(a.length<10){err.textContent="Das Passwort braucht mindestens 10 Zeichen.";return}
+    if(a!==b2){err.textContent="Die beiden Passwörter sind nicht gleich.";return}
+    err.textContent="Verschlüssele …";
+    encryptData(a,{stand:new Date().toISOString(),firmen:S.firmen,objekte:S.objekte,teams:S.teams,set:S.set}).then(enc=>{
+      const blob=new Blob([JSON.stringify(enc)],{type:"application/json"}),u=URL.createObjectURL(blob),l=document.createElement("a");l.href=u;l.download="daten.enc.json";document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);
+      err.textContent="";$("#enc-pw1").value="";$("#enc-pw2").value="";toast("daten.enc.json erstellt – jetzt bei GitHub hochladen")}).catch(()=>{err.textContent="Verschlüsseln nicht möglich. Öffne die Seite über https oder als Datei in Chrome/Safari."});return}
+  if(f.id==="firmaform"){const name=String(fd.get("name")).trim();if(!name){$("#h-name").focus();toast("Gib der Firma einen Namen.");return}
+    const fi={...S.editFirma,name,kontakt:fd.get("kontakt")};delete fi._neu;const i=S.firmen.findIndex(x=>x.id===fi.id);if(i>=0)S.firmen[i]=fi;else S.firmen.push(fi);
+    S.editFirma=null;S.firmaFilter=fi.id;saveFirma(fi);toast("Firma gespeichert");render()}
+  if(f.id==="teamform"){const k=parseKoord(fd.get("koord"));
+    if(!k){$("#gkoord-err").textContent="Der Startort braucht Koordinaten, z. B. 49.438000, 11.048000";return}
+    const t={...S.editTeam,name:String(fd.get("name")).trim()||"Tour",fahrzeug:fd.get("fahrzeug"),start:fd.get("start"),beginn:fd.get("beginn")||"04:30",lat:k.lat,lng:k.lng,farbe:+fd.get("farbe")||0};
+    delete t._neu;const i=S.teams.findIndex(x=>x.id===t.id);if(i>=0)S.teams[i]=t;else S.teams.push(t);S.editTeam=null;saveTeam(t);toast("Tour gespeichert");render()}
+  if(f.id==="setform"){S.set={kmh:Math.max(5,+fd.get("kmh")||22),faktor:Math.max(1,+fd.get("faktor")||1.35),gm2:Math.max(0,+fd.get("gm2")||0),rueckfahrt:!!fd.get("rueckfahrt")};saveSet();toast("Einstellungen übernommen");S.tab="touren";render()}
+});
+
+/* ---------- Start ---------- */
+try{const t=localStorage.getItem("rp-tab");if(t&&t!=="einst")S.tab=t}catch(_){}
+let saved=null;try{saved=JSON.parse(localStorage.getItem(KEY)||"null");localStorage.setItem(KEY+"-test","1");S.store=true}catch(_){S.store=false}
+S.mode="local";
+const load=x=>{S.syncStand=x.syncStand||"";S.firmen=x.firmen||[];S.objekte=x.objekte||[];S.teams=x.teams||[];S.erledigt=x.erledigt||[];S.set={...DEFAULT_SET,...(x.set||{})}};
+if(saved&&Array.isArray(saved.objekte))load(saved);else load(JSON.parse(JSON.stringify(DEMO)));
+setSave(S.store?"ok":"local",S.store?"Auf diesem Gerät gespeichert":"Nicht gespeichert");
+render();
+if(!isFile&&pwGet())syncLoad(pwGet(),true,true);
+})();
+</script>
+</body>
+</html>
